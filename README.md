@@ -1,6 +1,5 @@
 # whisky-insights
 
-````markdown
 ## Workflow Summary
 
 - **Extract:** `whisky_api.py` fetches data.  
@@ -59,4 +58,3 @@ To update `uv` in the future:
 ```bash
 uv self update
 ```
-````
