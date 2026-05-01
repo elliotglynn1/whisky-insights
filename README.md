@@ -58,3 +58,7 @@ To update `uv` in the future:
 ```bash
 uv self update
 ```
+
+
+## App streamlit link 
+https://whisky-insights-ipiemznoge2ac4jz7gdvmn.streamlit.app/
