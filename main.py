@@ -76,7 +76,7 @@ class AnalyticsUI:
             .sort("Total Volume Millions", descending=True)
             .head(10)
         )
-
+        tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
         top_revenue = (
             df.group_by("distillery_slug")
             .agg(
