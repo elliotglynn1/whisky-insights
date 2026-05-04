@@ -1,5 +1,6 @@
 import streamlit as st
-from db.sql_connector import WhiskyDataEngine
+from db.init_db import init_db
+from db.whisky_data_engine import WhiskyDataEngine
 from ui.analytics_ui import AnalyticsUI
 
 # --- CONFIG & CONSTANTS ---
@@ -7,6 +8,7 @@ st.set_page_config(page_title="Whisky Auction Data Explorer", layout="wide")
 
 
 def main():
+    init_db()
     ui = AnalyticsUI()
     engine = WhiskyDataEngine()
 
