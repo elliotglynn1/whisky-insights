@@ -13,19 +13,19 @@ def run_ingestion():
         "master_distilleries", conn, if_exists="replace", index=False
     )
 
-    slugs = all_dist["slug"].to_list()
+    distilleries = all_dist["slug"].to_list()
     master_records = []
 
-    print(f"Step 2: Syncing {len(slugs)} distilleries to Local DB...")
-    for slug in slugs:
+    print(f"Step 2: Syncing {len(distilleries)} distilleries to Local DB...")
+    for distillery in distilleries:
         try:
-            df = distillery_data(slug)
+            df = distillery_data(distillery)
             if not df.is_empty():
-                df = df.with_columns(pl.lit(slug).alias("distillery_slug"))
+                df = df.with_columns(pl.lit(distillery).alias("distillery_slug"))
                 master_records.append(df)
-                print(f" Success: {slug}")
+                print(f" Success: {distillery}")
         except Exception as e:
-            print(f" Failed: {slug} - {e}")
+            print(f" Failed: {distillery} - {e}")
             continue
 
     if master_records:

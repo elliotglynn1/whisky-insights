@@ -4,6 +4,8 @@
 
 - **Extract:** `whisky_api.py` fetches data.  
 - **Load:** `ingest.py` saves it into `whisky_data.db`.  
+- **Read** : `sql_connector.py` reads the DB.  
+- **UI:** `analytics_ui.py` controls the UI of the dashboard. 
 - **Display:** `main.py` reads the DB and shows the dashboard.  
 
 This separation ensures that if the API changes, you only have to fix one file (`whisky_api.py`) without breaking your entire dashboard.
@@ -58,7 +60,8 @@ To update `uv` in the future:
 ```bash
 uv self update
 ```
-
+---
 
 ## App streamlit link 
+
 https://whisky-insights-ipiemznoge2ac4jz7gdvmn.streamlit.app/
