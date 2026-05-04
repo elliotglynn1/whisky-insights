@@ -1,0 +1,45 @@
+name: DB Ingestion
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "ingest.py"
+      - "whisky_api/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/ingest.yml"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  uv-ingestion:
+    name: python
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Run ingestion
+        run: uv run python db/ingest.py
+
+      - name: Commit updated DB
+        if: github.event_name == 'push'
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add whisky_data.db
+          git commit -m "Update DB [skip ci]" || echo "No changes"
+          git push

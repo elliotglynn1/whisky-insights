@@ -8,35 +8,47 @@ def run_ingestion():
 
     print("Step 1: Fetching Master List...")
     all_dist = distilleries_info()
-    # Save the master list to SQL for the dropdown later
+
     all_dist.to_pandas().to_sql(
         "master_distilleries", conn, if_exists="replace", index=False
     )
 
     distilleries = all_dist["slug"].to_list()
-    master_records = []
 
-    print(f"Step 2: Syncing {len(distilleries)} distilleries to Local DB...")
+    print(f"Step 2: Syncing {len(distilleries)} distilleries...")
+
     for distillery in distilleries:
         try:
             df = distillery_data(distillery)
-            if not df.is_empty():
-                df = df.with_columns(pl.lit(distillery).alias("distillery_slug"))
-                master_records.append(df)
-                print(f" Success: {distillery}")
+
+            if df.is_empty():
+                continue
+
+            df = df.with_columns(pl.lit(distillery).alias("distillery_slug"))
+
+            pdf = df.to_pandas()
+
+            # 1. DELETE existing records
+            conn.execute(
+                """
+                DELETE FROM distillery_stats
+                WHERE distillery_slug = ?
+            """,
+                (distillery,),
+            )
+
+            # 2. INSERT fresh data
+            pdf.to_sql("distillery_stats", conn, if_exists="append", index=False)
+
+            print(f"Success: {distillery}")
+
         except Exception as e:
-            print(f" Failed: {distillery} - {e}")
-            continue
+            print(f"Failed: {distillery} - {e}")
 
-    if master_records:
-        full_df = pl.concat(master_records)
-        # Load to SQL
-        full_df.to_pandas().to_sql(
-            "distillery_stats", conn, if_exists="replace", index=False
-        )
-        print(f"\n✅ ETL Complete! {len(full_df)} records saved to whisky_data.db")
-
+    conn.commit()
     conn.close()
+
+    print("ETL Complete")
 
 
 if __name__ == "__main__":
