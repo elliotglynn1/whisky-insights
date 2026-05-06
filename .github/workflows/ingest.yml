@@ -2,7 +2,7 @@ name: DB Ingestion
 
 on:
   schedule:
-    - cron: "0 2 * * *"
+    - cron: "0 2 * * *"   # daily at 2am UTC
   workflow_dispatch:
   push:
     branches:
@@ -13,16 +13,13 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/ingest.yml"
-  pull_request:
-    branches:
-      - main
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   uv-ingestion:
-    name: python
     runs-on: ubuntu-latest
 
     steps:
@@ -30,19 +27,30 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        uses: astral-sh/setup-uv@v4
 
-      - name: Install the project
+      - name: Install dependencies
         run: uv sync --locked --all-extras --dev
 
       - name: Run ingestion
         run: uv run python db/ingest.py
 
-      - name: Commit updated DB
-        if: github.event_name == 'push'
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-          git add whisky_data.db
-          git commit -m "Update DB [skip ci]" || echo "No changes"
-          git push
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "Update DB [skip ci]"
+          branch: automated/db-update
+          delete-branch: true
+          title: "Automated DB update"
+          body: |
+            Daily ingestion update.
+          add-paths: |
+            whisky_data.db
+
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-url != ''
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
